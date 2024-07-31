@@ -18,9 +18,10 @@ float obstacleY[numObstacles];
 const float obstacleSize = 0.1f;
 const float obstacleSpeed = 0.02f;
 
-// Score properties
+// Score and lives properties
 float distanceCovered = 0.0f;
 bool gameOver = false;
+int lives = 3; // Number of lives
 
 // Function to initialize the game
 void initGame() {
@@ -29,6 +30,9 @@ void initGame() {
         obstacleX[i] = 1.0f + i * 0.5f;
         obstacleY[i] = (rand() % 200 - 100) / 100.0f;
     }
+    airplaneY = 0.0f;
+    distanceCovered = 0.0f;
+    gameOver = false;
 }
 
 // Function to draw the airplane
@@ -77,14 +81,14 @@ void drawObstacle(float x, float y) {
     glPopMatrix();
 }
 
-// Function to display the current score
-void displayScore() {
-    char scoreStr[50];
-    sprintf(scoreStr, "Score: %.2f", distanceCovered);
+// Function to display the current score and lives
+void displayScoreAndLives() {
+    char infoStr[50];
+    sprintf(infoStr, "Score: %.2f   Lives: %d", distanceCovered, lives);
 
     glColor3f(1.0f, 1.0f, 1.0f);
     glRasterPos2f(-0.9f, 0.9f);
-    for (const char* c = scoreStr; *c != '\0'; ++c) {
+    for (const char* c = infoStr; *c != '\0'; ++c) {
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
     }
 }
@@ -111,7 +115,7 @@ void display() {
 
     if (!gameOver) {
         drawAirplane();
-        displayScore();
+        displayScoreAndLives();
 
         for (int i = 0; i < numObstacles; ++i) {
             drawObstacle(obstacleX[i], obstacleY[i]);
@@ -140,7 +144,13 @@ void update(int value) {
             if (obstacleX[i] < -0.75f && obstacleX[i] > -0.85f &&
                 airplaneY < obstacleY[i] + obstacleSize / 2 &&
                 airplaneY > obstacleY[i] - obstacleSize / 2) {
-                gameOver = true; // Collision detected, end the game
+                // Collision detected
+                lives--; // Decrease lives
+                if (lives <= 0) {
+                    gameOver = true; // End the game if no lives are left
+                } else {
+                    initGame(); // Reset the game state
+                }
             }
         }
 
